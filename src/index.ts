@@ -171,14 +171,10 @@ let phone2 = <HTMLInputElement>document.getElementById("phone");
 
 phone.value;
 
-
-
-
 // the unknown type
 
 // using the unknown type is preferred to using the any type
 // because the compiler forces us to do some type checking to make sure the methods we are calling exists on the target object
-
 
 // function render2(document : any) {
 //     document.move()
@@ -186,8 +182,6 @@ phone.value;
 // function render3(document : unknown) {
 //     document.move()
 // }
-
-
 
 // never type
 
@@ -208,7 +202,183 @@ phone.value;
 // processEvent()
 // console.log("Hello World"); // Unreachable code
 
+// Classes
 
+class Account {
+  readonly id: number;
+  owner: string;
+  private balance: number;
+  nickname?: string;
 
+  constructor(id: number, owner: string, balance: number) {
+    this.id = id;
+    this.owner = owner;
+    this.balance = balance;
+  }
 
+  deposit(amount: number): void {
+    if (amount <= 0) {
+      throw new Error("Invalid Amount");
+    }
+    this.balance += amount;
+  }
 
+  getBalance() {
+    return this.balance;
+  }
+}
+
+let account = new Account(1, "Sina", 20);
+account.deposit(100);
+console.log(account instanceof Account); // true
+// we can use readonly and optional property in classes
+// we can use private keyword to access that property or method only in class
+// console.log(account.balance); error (private)
+
+// Parameter Properties and getter & setter
+
+class Employees {
+  constructor(public id: number, public name: string, private age: number) {}
+  get userAge(): number {
+    return this.age;
+  }
+  set userAge(value: number) {
+    if (value < 0) {
+      throw new Error("Invalid Age");
+    }
+    this.age = value;
+  }
+}
+// we can validate the value inside setter
+
+let employee1 = new Employees(1, "sina", 20);
+console.log(employee1.userAge);
+
+// Index Signatures
+
+// when we want to add properties to an object dynamically we use index signatures
+
+class SeatAssignment {
+  [seatNumber: string]: string;
+}
+
+let seats = new SeatAssignment();
+seats.A1 = "Mosh";
+seats.A2 = "Sina";
+
+// Static
+
+class Ride {
+  private static _activeRides: number = 0;
+
+  start() {
+    Ride._activeRides++;
+  }
+  stop() {
+    Ride._activeRides--;
+  }
+
+  static get activeRides() {
+    return Ride._activeRides;
+  }
+}
+
+let ride1 = new Ride();
+ride1.start();
+
+let ride2 = new Ride();
+ride2.start();
+
+console.log(Ride.activeRides);
+
+// Inheritance
+
+class Person {
+  constructor(public firstname: string, public lastname: string) {}
+  get fullName() {
+    return this.firstname + " " + this.lastname;
+  }
+  walk() {
+    console.log("walking");
+  }
+}
+
+class Student extends Person {
+  constructor(public studentId, firstname, lastname) {
+    super(firstname, lastname);
+  }
+  takeTest() {
+    console.log("Taking a test");
+  }
+}
+
+let student = new Student(1, "sina", "erfanian");
+
+// Method Overriding
+
+class Teacher extends Person {
+  override get fullName() {
+    return "Professor " + super.fullName;
+  }
+}
+
+let teacher = new Teacher("John", "Smith");
+console.log(teacher.fullName);
+
+// Polymorphism
+
+function printNames(people: Person[]) {
+  for (let person of people) {
+    console.log(person.fullName);
+  }
+}
+
+printNames([
+  new Student(1, "sina", "Erfanian"),
+  new Teacher("mosh", "Hamedani"),
+]);
+
+// Protected vs Private
+// the difference is that protected members are inherited but private members are not
+
+// Abstract
+// we are telling the typescript compiler that this class is abstract or simple or not ready
+// so another class like circle has to extend it
+abstract class Shape {
+  constructor(public color: string) {}
+  abstract render(): void;
+}
+
+class Circle extends Shape {
+  constructor(public radius: number, color: string) {
+    super(color);
+  }
+
+  override render(): void {
+    console.log("Rendering circle");
+  }
+}
+
+// const shape = new Shape(); error (Abstract)
+
+// Interfaces
+
+interface Calendar {
+  name: string;
+  addEvent(): void;
+  removeEvent(): void;
+}
+
+interface CloudCalendar extends Calendar {
+  sync(): void;
+}
+
+class GoogleCalendar implements Calendar {
+  constructor(public name: string) {}
+  addEvent(): void {
+    throw new Error("Method not implemented.");
+  }
+  removeEvent(): void {
+    throw new Error("Method not implemented.");
+  }
+}
