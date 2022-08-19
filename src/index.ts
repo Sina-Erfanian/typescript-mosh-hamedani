@@ -382,3 +382,158 @@ class GoogleCalendar implements Calendar {
     throw new Error("Method not implemented.");
   }
 }
+
+// Generic Classes
+
+class KeyValuePair<K, V> {
+  constructor(public key: K, public value: V) {}
+}
+
+let pair = new KeyValuePair<number, string>(2, "sina");
+// let pair = new KeyValuePair(2,"sina") same with above code
+
+let pair2 = new KeyValuePair("sina", "erfanian");
+
+// Generic Function
+
+function wrapInArray<T>(value: T) {
+  return [value];
+}
+
+let numbers = wrapInArray(1); // number[]
+let strings = wrapInArray("sina"); // string[]
+
+// Generic Interfaces
+
+interface Result<T> {
+  data: T | null;
+  error: string | null;
+}
+
+function fetch<T>(url: string): Result<T> {
+  return { data: null, error: null };
+}
+
+interface User {
+  username: string;
+}
+
+interface Product {
+  title: string;
+}
+
+let result = fetch<User>("url");
+let result2 = fetch<Product>("url");
+
+// Generic Constraints
+
+function echo<T extends number | string>(value: T): T {
+  return value;
+}
+
+// echo(true) error (just string or number)
+echo(1);
+echo("sina");
+
+interface Person2 {
+  name: string;
+}
+
+function echo2<T extends Person2>(value: T): T {
+  return value;
+}
+
+echo2({ name: "ali" });
+// echo2({name : "sina"})
+
+class Person3 {
+  constructor(public name: string) {}
+}
+function echo3<T extends Person3>(value: T): T {
+  return value;
+}
+
+echo3(new Person3("sina"));
+
+// Extending Generic Classes
+
+interface Product {
+  name: string;
+  price: number;
+}
+
+class Store<T> {
+  protected objects: T[] = [];
+  add(obj: T): void {
+    this.objects.push(obj);
+  }
+}
+
+class CompressibleStore<T> extends Store<T> {
+  compress() {}
+}
+let store = new CompressibleStore<Product>();
+
+class SearchableStore<T extends { name: string }> extends Store<T> {
+  find(name: string): T | undefined {
+    return this.objects.find((obj) => obj.name === name);
+  }
+}
+
+class ProductStore extends Store<Product> {
+  filterByCategory(category: string): Product[] {
+    return [];
+  }
+}
+
+// keyof operator
+
+interface Products {
+  name: string;
+  price: number;
+}
+
+class Store2<T> {
+  protected objects: T[] = [];
+  add(obj: T): void {
+    this.objects.push(obj);
+  }
+
+  // T is Products
+  // keyof T => "name" | "price"
+  find(property: keyof T, value: unknown): T | undefined {
+    return this.objects.find((obj) => obj[property] === value);
+  }
+}
+
+let store2 = new Store2<Products>();
+store2.add({ name: "sina", price: 1 });
+store2.find("name", "sina");
+// store2.find("nonExistingProperty",1) Error (not available in keyof T)
+
+// Type Mapping
+
+interface Pd {
+  name: string;
+  price: number;
+}
+
+// T is Pd
+// in the below code K is the each key of Pd interface
+// iterate => first time name : string
+// second time price : number
+// actually we add readonly to each property
+type ReadOnly<T> = {
+  readonly [K in keyof T]: T[K];
+};
+
+let product1: ReadOnly<Pd> = {
+  name: "a",
+  price: 10,
+};
+
+// product1.name = "b" Error (readonly)
+// https://www.typescriptlang.org/docs/handbook/utility-types.html
+
+
+
