@@ -535,5 +535,142 @@ let product1: ReadOnly<Pd> = {
 // product1.name = "b" Error (readonly)
 // https://www.typescriptlang.org/docs/handbook/utility-types.html
 
+// Class Decorators
 
+// https://dev.to/danywalls/decorators-in-typescript-with-example-part-1-m0f
 
+function Component(constructor: Function) {
+  console.log("Component Decorator Called");
+  constructor.prototype.uniqueId = Date.now();
+  constructor.prototype.insertInDom = () => {
+    console.log("Inserting in DOM");
+  };
+}
+@Component
+class ProfileComponent {}
+
+// Parameterized Decorators and Decorator composition
+
+type ComponentOptions = {
+  selector: string;
+};
+
+function Component2(options: ComponentOptions) {
+  return (constructor: Function) => {
+    constructor.prototype.options = options;
+  };
+}
+
+function Pipe(constructor: Function) {
+  console.log("Pipe Decorator Called");
+  constructor.prototype.pipe = true;
+}
+
+// first pipe run then component2
+@Component2({ selector: "#value" })
+@Pipe
+class ProfileComponent2 {}
+
+// Method Decorators
+
+function Log(target: any, methodName: string, descriptor: PropertyDescriptor) {
+  // we can completely replace method to a new method
+  // https://medium.com/jspoint/a-quick-introduction-to-the-property-descriptor-of-the-javascript-objects-5093c37d079
+  const original = descriptor.value as Function;
+  descriptor.value = function (...args: any) {
+    console.log("Before");
+    // in the call method the second one is the argument(s) we want to pass to the target function
+    original.call(this, ...args);
+    console.log("After");
+  };
+}
+
+class NewPerson {
+  @Log
+  say(message: string) {
+    console.log("Person Says " + message);
+  }
+}
+
+let newPerson = new NewPerson();
+
+// Accessor Decorators
+
+function Capitalize(
+  target: any,
+  methodName: string,
+  descriptor: PropertyDescriptor
+) {
+  const original = descriptor.get;
+  descriptor.get = function () {
+    const result = original?.call(this);
+    return typeof result === "string" ? result.toUpperCase() : result;
+  };
+}
+
+class Prs {
+  constructor(public firstName: string, public lastName: string) {}
+
+  @Capitalize
+  get fullName() {
+    return `${this.firstName} ${this.lastName}`;
+  }
+}
+
+const prs = new Prs("sina", "erfanian");
+console.log(prs.fullName);
+
+// Property Decorators
+
+function MinLength(length: number) {
+  return (target: any, propertyName: string) => {
+    let value: string;
+
+    const descriptor: PropertyDescriptor = {
+      get() {
+        return value;
+      },
+      set(newValue: string) {
+        if (newValue.length < length)
+          throw new Error(`${propertyName} should be at least ${length}`);
+        value = newValue;
+      },
+    };
+    Object.defineProperty(target, propertyName, descriptor);
+  };
+}
+
+class MyUser {
+  @MinLength(4)
+  password: string;
+
+  constructor(password: string) {
+    this.password = password;
+  }
+}
+
+let myUser = new MyUser("1234");
+
+console.log(myUser.password);
+
+// Parameter Decorators
+
+type WatchedParameter = {
+  methodName: string;
+  parameterIndex: number;
+};
+
+const watchedParameter: WatchedParameter[] = [];
+
+function Watch(target: any, methodName: string, parameterIndex: number) {
+  watchedParameter.push({
+    methodName,
+    parameterIndex,
+  });
+}
+
+class Vehicle {
+  move(@Watch speed: number) {}
+}
+
+console.log(watchedParameter);
